@@ -15,7 +15,31 @@ def load_google_sheet(gs_file, delimiter="\t", quotechar=None):
         return list(reader)
 
 
-def get_ark_metadata(gs_md):
+def get_aviary_metadata(gs_md):
+    return [
+        {
+            "dc.creator": "; ".join(
+                [
+                    a.split(";;")[-1].strip()
+                    for a
+                    in g.get("Agent").split("|")
+                ]
+            ).strip("; "),
+            "dc.title": g.get("Title", ""),
+            "dc.date": g.get("Date", ""),
+            "_target": "".join(
+                [
+                    "https://iastate.aviaryplatform.com/c/",
+                    g.get("Custom Unique Identifier", "")
+                ] 
+            ),
+            "dc.type": g.get("Type", "").split("|")[-1]
+        }
+        for g
+        in gs_md
+    ]
+
+def get_islandora_metadata(gs_md):
     return [
         {
             "dc.creator": "; ".join(
@@ -30,7 +54,7 @@ def get_ark_metadata(gs_md):
                 [
                     "https://digitalcollections.lib.iastate.edu/islandora/object/",
                     g.get("pid", "")
-                ]
+                ] 
             ),
             "dc.type": g.get("dcmi_type", "")
         }
@@ -39,6 +63,7 @@ def get_ark_metadata(gs_md):
         for g
         in gs_md
     ]
+
 
 
 def mint_arks(md, user_name, password, shoulder):
@@ -67,9 +92,10 @@ def mint_arks(md, user_name, password, shoulder):
     ]
 
 
-def save_google_sheet(gs_md, arks, out_file, dialect=csv.excel_tab):
+def save_google_sheet(gs_md, arks, out_file, platform, dialect=csv.excel_tab):
+    ark_column = "ark" if platform == "islandora" else "ARK"
     for g, a in zip(gs_md, arks):
-        g["ark"] = a
+        g[ark_column] = a
 
     with open(out_file, "w", encoding="utf8", newline="") as fh:
         fieldnames = list(gs_md[0].keys())
@@ -77,22 +103,3 @@ def save_google_sheet(gs_md, arks, out_file, dialect=csv.excel_tab):
 
         writer.writeheader()
         writer.writerows(gs_md)
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("username")
-    parser.add_argument("password")
-    parser.add_argument("shoulder")
-    parser.add_argument("source")
-    parser.add_argument("outfile")
-    args = parser.parse_args()
-
-    gs_md = load_google_sheet(args.source)
-    arks_md = get_ark_metadata(gs_md)
-    arks = mint_arks(arks_md, args.username, args.password, args.shoulder)
-    save_google_sheet(gs_md, arks, args.outfile)
-
-
-if __name__ == "__main__":
-    main()
