@@ -37,9 +37,16 @@ def get_aviary_metadata(gs_md, aviary_to_islandora=False):
             in gs_md
         ]
         # The Islandora digital collection will usually lack a URL, so
-        #
         if not ark_md[0]["_target"].startswith("http"):
-            arks_md[0]["_target"] = f"https://digitalcollections.lib.iastate.edu/islandora/object/{gs_md[0]['pid']}"
+            ark_md[0]["_target"] = f"https://digitalcollections.lib.iastate.edu/islandora/object/{gs_md[0]['pid']}"
+
+        if ark_md[0]["dc.creator"] == "":
+            ark_md[0]["dc.creator"] = "Iowa State University. Library"
+
+        if ark_md[0]["dc.type"] == "":
+            ark_md[0]["dc.type"] = "Collection"
+        
+        return ark_md
 
     return [
         {

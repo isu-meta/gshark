@@ -31,7 +31,7 @@ def main():
         arks = mint_arks(arks_md, args.username, args.password, args.shoulder)
         save_tsv(gs_md, args.outfile, args.platform, arks)
     else:
-        save_tsv(gs_md, args.outfile, "arkimedes")
+        save_tsv(arks_md, args.outfile, "arkimedes")
 
 
 if __name__ == "__main__":
